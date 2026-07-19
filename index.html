@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AMFL Турнир — Класиране</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  :root{
+    --night:#0E1A2B;
+    --card:#16263D;
+    --card-2:#1D3050;
+    --line:#2A3F5F;
+    --gold:#E3B23C;
+    --gold-dim:#9C7A2E;
+    --text:#EAF0FA;
+    --text-dim:#8FA3C2;
+    --win:#4CAF6D;
+    --draw:#E3B23C;
+    --loss:#E2574C;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--night);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    padding:0 0 4rem;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:0 20px;}
+  header.top{
+    padding:2.5rem 20px 1.5rem;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+    margin-bottom:1.5rem;
+  }
+  header.top h1{
+    font-family:'Bebas Neue',sans-serif;
+    letter-spacing:2px;
+    font-size:2.6rem;
+    margin:0;
+    color:var(--gold);
+  }
+  header.top p{color:var(--text-dim);margin:.3rem 0 0;font-size:.9rem;}
+  nav.tabs{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-bottom:1.75rem;
+  }
+  nav.tabs button{
+    font-family:'Bebas Neue',sans-serif;
+    letter-spacing:1px;
+    font-size:1.05rem;
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--text-dim);
+    padding:.5rem 1.1rem;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  nav.tabs button.active{
+    background:var(--gold);
+    color:var(--night);
+    border-color:var(--gold);
+  }
+  h2.section{
+    font-family:'Bebas Neue',sans-serif;
+    letter-spacing:1.5px;
+    font-size:1.5rem;
+    color:var(--gold);
+    margin:2.2rem 0 .8rem;
+  }
+  .group-block{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:1.1rem 1.2rem 1.3rem;
+    margin-bottom:1.3rem;
+  }
+  .group-block h3{
+    margin:0 0 .8rem;
+    font-family:'Bebas Neue',sans-serif;
+    letter-spacing:1px;
+    font-size:1.2rem;
+    color:var(--text);
+  }
+  table.standings{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.85rem;
+  }
+  table.standings th{
+    text-align:center;
+    color:var(--text-dim);
+    font-weight:600;
+    padding:.35rem .3rem;
+    border-bottom:1px solid var(--line);
+    font-size:.72rem;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+  }
+  table.standings th:first-child, table.standings td:first-child{
+    text-align:left;
+    padding-left:.2rem;
+  }
+  table.standings td{
+    text-align:center;
+    padding:.4rem .3rem;
+    font-family:'Roboto Mono',monospace;
+    font-size:.82rem;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  table.standings tr.q-main td:first-child{border-left:3px solid var(--win);padding-left:.7rem;}
+  table.standings tr.q-second td:first-child{border-left:3px solid var(--draw);padding-left:.7rem;}
+  table.standings td.pts{color:var(--gold);font-weight:700;}
+  table.standings td.team{font-family:'Inter',sans-serif;font-weight:500;color:var(--text);}
+  .legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--text-dim);margin:.6rem 0 0;}
+  .legend span{display:inline-flex;align-items:center;gap:.4rem;}
+  .dot{width:9px;height:9px;border-radius:2px;display:inline-block;}
+  .dot.win{background:var(--win);} .dot.draw{background:var(--draw);}
+
+  .matches-grid{display:flex;flex-direction:column;gap:.5rem;}
+  .round-label{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin:.7rem 0 .3rem;}
+  .match-row{
+    display:grid;
+    grid-template-columns:1fr 46px 16px 46px 1fr;
+    align-items:center;
+    gap:.5rem;
+    background:var(--card-2);
+    border-radius:8px;
+    padding:.45rem .6rem;
+  }
+  .match-row .home{text-align:right;font-size:.85rem;}
+  .match-row .away{text-align:left;font-size:.85rem;}
+  .match-row .vs{text-align:center;color:var(--text-dim);font-size:.75rem;}
+  .match-row input{
+    width:46px;
+    text-align:center;
+    background:var(--night);
+    border:1px solid var(--line);
+    color:var(--text);
+    border-radius:6px;
+    font-family:'Roboto Mono',monospace;
+    font-size:.9rem;
+    padding:.3rem 0;
+  }
+  .match-row input:focus{outline:2px solid var(--gold);border-color:var(--gold);}
+
+  .cup-block{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:1.1rem 1.2rem;
+    margin-bottom:1.3rem;
+  }
+  .cup-block h3{
+    font-family:'Bebas Neue',sans-serif;
+    letter-spacing:1px;
+    font-size:1.25rem;
+    margin:0 0 .9rem;
+    color:var(--gold);
+  }
+  .slot-list{display:flex;flex-direction:column;gap:.4rem;}
+  .slot{
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+    background:var(--card-2);
+    border-radius:8px;
+    padding:.5rem .7rem;
+    font-size:.88rem;
+  }
+  .slot .team{font-weight:500;}
+  .slot .why{color:var(--text-dim);font-size:.76rem;margin-left:auto;}
+
+  .bracket{display:flex;flex-direction:column;gap:.5rem;margin-top:.9rem;}
+  .bracket .pair{
+    display:grid;
+    grid-template-columns:1fr 60px 1fr;
+    align-items:center;
+    background:var(--card-2);
+    border-radius:8px;
+    padding:.5rem .8rem;
+    font-size:.85rem;
+  }
+  .bracket .pair span:first-child{text-align:right;padding-right:.6rem;}
+  .bracket .pair span:last-child{text-align:left;padding-left:.6rem;}
+  .bracket .pair span.tag{color:var(--text-dim);font-size:.72rem;text-align:center;}
+  .note{
+    font-size:.78rem;
+    color:var(--text-dim);
+    background:var(--card-2);
+    border-left:3px solid var(--gold-dim);
+    padding:.6rem .8rem;
+    border-radius:0 8px 8px 0;
+    margin:.8rem 0 0;
+  }
+  .toolbar{display:flex;gap:.6rem;justify-content:center;margin:1.5rem 0 0;flex-wrap:wrap;}
+  .toolbar button{
+    font-family:'Inter',sans-serif;
+    font-size:.82rem;
+    background:var(--card);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:.5rem 1rem;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .toolbar button:hover{border-color:var(--gold);color:var(--gold);}
+  .footer-note{text-align:center;color:var(--text-dim);font-size:.72rem;margin-top:2rem;}
+  @media(max-width:520px){
+    .match-row{grid-template-columns:1fr 40px 14px 40px 1fr;}
+    table.standings{font-size:.72rem;}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useMemo} = React;
+
+const initialData = {
+  A: { name: "Група А", teams: ["Fullmax","Абсолют","Стройгранд","Ново Оряхово"], matches: [
+    {round:1, home:"Ново Оряхово", away:"Fullmax", hs:0, as:12},
+    {round:1, home:"Абсолют", away:"Стройгранд", hs:2, as:4},
+    {round:2, home:"Fullmax", away:"Абсолют", hs:null, as:null},
+    {round:2, home:"Стройгранд", away:"Ново Оряхово", hs:null, as:null},
+    {round:3, home:"Стройгранд", away:"Fullmax", hs:2, as:4},
+    {round:3, home:"Ново Оряхово", away:"Абсолют", hs:3, as:8},
+  ]},
+  B: { name: "Група Б", teams: ["Феникс","Спейс Тийм","Сивите Гъски","Тигрите от Младост"], matches: [
+    {round:1, home:"Тигрите от Младост", away:"Феникс", hs:4, as:6},
+    {round:1, home:"Сивите Гъски", away:"Спейс Тийм", hs:5, as:5},
+    {round:2, home:"Феникс", away:"Сивите Гъски", hs:4, as:2},
+    {round:2, home:"Спейс Тийм", away:"Тигрите от Младост", hs:5, as:3},
+    {round:3, home:"Спейс Тийм", away:"Феникс", hs:null, as:null},
+    {round:3, home:"Тигрите от Младост", away:"Сивите Гъски", hs:null, as:null},
+  ]},
+  C: { name: "Група В", teams: ["Балерини","Фк Дружба","Фк Финт","Сборка 17"], matches: [
+    {round:1, home:"Сборка 17", away:"Балерини", hs:1, as:6},
+    {round:1, home:"Фк Финт", away:"Фк Дружба", hs:5, as:1},
+    {round:2, home:"Балерини", away:"Фк Финт", hs:11, as:1},
+    {round:2, home:"Фк Дружба", away:"Сборка 17", hs:8, as:4},
+    {round:3, home:"Фк Дружба", away:"Балерини", hs:null, as:null},
+    {round:3, home:"Сборка 17", away:"Фк Финт", hs:null, as:null},
+  ]},
+  D: { name: "Група Г", teams: ["The Unity","TNT","ФК Владислав","Ария"], matches: [
+    {round:1, home:"ФК Владислав", away:"The Unity", hs:1, as:10},
+    {round:1, home:"Ария", away:"TNT", hs:0, as:5},
+    {round:2, home:"The Unity", away:"Ария", hs:9, as:0},
+    {round:2, home:"TNT", away:"ФК Владислав", hs:10, as:2},
+    {round:3, home:"TNT", away:"The Unity", hs:null, as:null},
+    {round:3, home:"ФК Владислав", away:"Ария", hs:null, as:null},
+  ]},
+  E: { name: "Група Д", teams: ["Валекс","МФК Импакт","Арсенал Трошево","МФК Братухи"], matches: [
+    {round:1, home:"МФК Братухи", away:"Валекс", hs:0, as:8},
+    {round:1, home:"Арсенал Трошево", away:"МФК Импакт", hs:2, as:3},
+    {round:2, home:"Валекс", away:"Арсенал Трошево", hs:1, as:2},
+    {round:2, home:"МФК Импакт", away:"МФК Братухи", hs:6, as:2},
+    {round:3, home:"МФК Импакт", away:"Валекс", hs:null, as:null},
+    {round:3, home:"МФК Братухи", away:"Арсенал Трошево", hs:null, as:null},
+  ]},
+};
+
+function computeStandings(group){
+  const stats = {};
+  group.teams.forEach(t => stats[t] = {team:t, M:0,W:0,D:0,L:0,GF:0,GA:0,GD:0,Pts:0});
+  group.matches.forEach(m => {
+    if(m.hs===null || m.as===null || m.hs==="" || m.as==="") return;
+    const hs = Number(m.hs), as = Number(m.as);
+    const h = stats[m.home], a = stats[m.away];
+    h.M++; a.M++;
+    h.GF += hs; h.GA += as;
+    a.GF += as; a.GA += hs;
+    if(hs>as){ h.W++; h.Pts+=3; a.L++; }
+    else if(hs<as){ a.W++; a.Pts+=3; h.L++; }
+    else { h.D++; a.D++; h.Pts+=1; a.Pts+=1; }
+  });
+  Object.values(stats).forEach(s => s.GD = s.GF - s.GA);
+  return Object.values(stats).sort((x,y) =>
+    y.Pts - x.Pts || y.GD - x.GD || y.GF - x.GF || x.team.localeCompare(y.team)
+  );
+}
+
+function rankPool(pool){
+  return [...pool].sort((x,y) =>
+    y.Pts - x.Pts || y.GD - x.GD || y.GF - x.GF || x.team.localeCompare(y.team)
+  );
+}
+
+const GROUP_KEYS = ["A","B","C","D","E"];
+const GROUP_LABEL = {A:"А", B:"Б", C:"В", D:"Г", E:"Д"};
+
+function Standings({data}){
+  const allStandings = {};
+  GROUP_KEYS.forEach(k => allStandings[k] = computeStandings(data[k]));
+
+  const runnersUp = rankPool(GROUP_KEYS.map(k => allStandings[k][1]));
+  const bestRunners = runnersUp.slice(0,3).map(r=>r.team);
+  const fourths = rankPool(GROUP_KEYS.map(k => allStandings[k][3]));
+  const bestFourth = fourths[0] ? fourths[0].team : null;
+
+  return (
+    <div>
+      {GROUP_KEYS.map(k => {
+        const st = allStandings[k];
+        return (
+          <div className="group-block" key={k}>
+            <h3>{data[k].name}</h3>
+            <table className="standings">
+              <thead>
+                <tr>
+                  <th>Отбор</th><th>М</th><th>П</th><th>Р</th><th>З</th>
+                  <th>ВГ</th><th>ДГ</th><th>ГР</th><th>Т</th>
+                </tr>
+              </thead>
+              <tbody>
+                {st.map((row,i) => {
+                  const cls = i===0 ? "q-main" : (i===1 && bestRunners.includes(row.team)) ? "q-main" : (i===1 ? "q-second" : (i===2 ? "q-second" : (i===3 && row.team===bestFourth ? "q-second" : "")));
+                  return (
+                    <tr key={row.team} className={cls}>
+                      <td className="team">{row.team}</td>
+                      <td>{row.M}</td><td>{row.W}</td><td>{row.D}</td><td>{row.L}</td>
+                      <td>{row.GF}</td><td>{row.GA}</td>
+                      <td>{row.GD>0?`+${row.GD}`:row.GD}</td>
+                      <td className="pts">{row.Pts}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className="legend">
+              <span><i className="dot win"></i>Шампионски поток</span>
+              <span><i className="dot draw"></i>Купа Втори Шанс</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Matches({data, setData}){
+  const updateScore = (gk, idx, field, value) => {
+    const v = value === "" ? null : value.replace(/[^0-9]/g,"");
+    setData(prev => {
+      const copy = {...prev};
+      const matches = copy[gk].matches.map((m,i) => i===idx ? {...m,[field]: v===null?null:(v===""?null:v)} : m);
+      copy[gk] = {...copy[gk], matches};
+      return copy;
+    });
+  };
+
+  return (
+    <div>
+      {GROUP_KEYS.map(gk => {
+        const g = data[gk];
+        const rounds = [1,2,3];
+        return (
+          <div className="group-block" key={gk}>
+            <h3>{g.name}</h3>
+            <div className="matches-grid">
+              {rounds.map(r => (
+                <div key={r}>
+                  <div className="round-label">Кръг {r}</div>
+                  {g.matches.map((m, idx) => {
+                    if(m.round !== r) return null;
+                    return (
+                      <div className="match-row" key={idx}>
+                        <div className="home">{m.home}</div>
+                        <input type="text" inputMode="numeric" value={m.hs===null?"":m.hs}
+                          onChange={e=>updateScore(gk, idx, "hs", e.target.value)} />
+                        <div className="vs">:</div>
+                        <input type="text" inputMode="numeric" value={m.as===null?"":m.as}
+                          onChange={e=>updateScore(gk, idx, "as", e.target.value)} />
+                        <div className="away">{m.away}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Qualification({data}){
+  const allStandings = {};
+  GROUP_KEYS.forEach(k => allStandings[k] = computeStandings(data[k]));
+
+  const winners = GROUP_KEYS.map(k => ({...allStandings[k][0], group:k}));
+  const runners = GROUP_KEYS.map(k => ({...allStandings[k][1], group:k}));
+  const thirds = GROUP_KEYS.map(k => ({...allStandings[k][2], group:k}));
+  const fourths = GROUP_KEYS.map(k => ({...allStandings[k][3], group:k}));
+
+  const runnersRanked = rankPool(runners);
+  const bestRunners = runnersRanked.slice(0,3);
+  const restRunners = runnersRanked.slice(3);
+  const fourthsRanked = rankPool(fourths);
+  const bestFourth = fourthsRanked[0];
+  const restFourths = fourthsRanked.slice(1);
+
+  const mainCup = [
+    ...winners.map(t=>({...t, why:`1-во място, Гр. ${GROUP_LABEL[t.group]}`})),
+    ...bestRunners.map(t=>({...t, why:`Най-добър втори (Гр. ${GROUP_LABEL[t.group]})`})),
+  ];
+  const secondChance = [
+    ...restRunners.map(t=>({...t, why:`2-ро място, Гр. ${GROUP_LABEL[t.group]}`})),
+    ...thirds.map(t=>({...t, why:`3-то място, Гр. ${GROUP_LABEL[t.group]}`})),
+    ...(bestFourth ? [{...bestFourth, why:`Най-добър четвърти (Гр. ${GROUP_LABEL[bestFourth.group]})`}] : []),
+  ];
+
+  const renderSlots = list => (
+    <div className="slot-list">
+      {list.map((t,i) => (
+        <div className="slot" key={i}>
+          <span className="team">{t.team}</span>
+          <span className="why">{t.why}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div>
+      <div className="cup-block">
+        <h3>Шампионски поток</h3>
+        {renderSlots(mainCup)}
+      </div>
+      <div className="cup-block">
+        <h3>Купа Втори Шанс</h3>
+        {renderSlots(secondChance)}
+      </div>
+    </div>
+  );
+}
+
+function Bracket(){
+  const slots = [1,2,3,4];
+  return (
+    <div>
+      <div className="cup-block">
+        <h3>Четвъртфинали — Шампионски поток</h3>
+        <div className="bracket">
+          {slots.map(i=>(
+            <div className="pair" key={i}>
+              <span>Х</span>
+              <span className="tag">срещу</span>
+              <span>Х</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="cup-block">
+        <h3>Четвъртфинали — Купа Втори Шанс</h3>
+        <div className="bracket">
+          {slots.map(i=>(
+            <div className="pair" key={i}>
+              <span>Х</span>
+              <span className="tag">срещу</span>
+              <span>Х</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App(){
+  const [data, setData] = useState(initialData);
+  const [tab, setTab] = useState("matches");
+
+  const exportJSON = () => {
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "turnir-danni.json"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importJSON = (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try{
+        const parsed = JSON.parse(ev.target.result);
+        setData(parsed);
+      }catch(err){
+        alert("Файлът не изглежда валиден JSON.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  return (
+    <div className="wrap">
+      <header className="top">
+        <h1>AMFL Zero Zero World Cup 2026</h1>
+        <p>Групова фаза · Основна купа + Купа "Втори шанс"</p>
+      </header>
+      <nav className="tabs">
+        <button className={tab==="matches"?"active":""} onClick={()=>setTab("matches")}>Резултати</button>
+        <button className={tab==="standings"?"active":""} onClick={()=>setTab("standings")}>Класиране</button>
+        <button className={tab==="qual"?"active":""} onClick={()=>setTab("qual")}>Класирали се</button>
+        <button className={tab==="bracket"?"active":""} onClick={()=>setTab("bracket")}>Плейофи</button>
+      </nav>
+      {tab==="matches" && <Matches data={data} setData={setData} />}
+      {tab==="standings" && <Standings data={data} />}
+      {tab==="qual" && <Qualification data={data} />}
+      {tab==="bracket" && <Bracket />}
+      <div className="toolbar">
+        <button onClick={exportJSON}>Свали данните (JSON)</button>
+        <label className="btn-file" style={{display:"inline-block"}}>
+          <button onClick={(e)=>{e.preventDefault(); document.getElementById('import-input').click();}}>Качи запазени данни</button>
+          <input id="import-input" type="file" accept="application/json" style={{display:"none"}} onChange={importJSON} />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
