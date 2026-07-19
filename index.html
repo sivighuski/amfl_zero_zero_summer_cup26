@@ -181,19 +181,89 @@
   .slot .team{font-weight:500;}
   .slot .why{color:var(--text-dim);font-size:.76rem;margin-left:auto;}
 
-  .bracket{display:flex;flex-direction:column;gap:.5rem;margin-top:.9rem;}
-  .bracket .pair{
-    display:grid;
-    grid-template-columns:1fr 60px 1fr;
-    align-items:center;
-    background:var(--card-2);
-    border-radius:8px;
-    padding:.5rem .8rem;
-    font-size:.85rem;
+  .elim-wrap{
+    display:flex;
+    gap:44px;
+    margin-top:1rem;
+    overflow-x:auto;
+    padding-bottom:.5rem;
   }
-  .bracket .pair span:first-child{text-align:right;padding-right:.6rem;}
-  .bracket .pair span:last-child{text-align:left;padding-left:.6rem;}
-  .bracket .pair span.tag{color:var(--text-dim);font-size:.72rem;text-align:center;}
+  .elim-round{
+    display:flex;
+    flex-direction:column;
+    min-width:190px;
+  }
+  .elim-round-title{
+    font-family:'Bebas Neue',sans-serif;
+    letter-spacing:1px;
+    font-size:.95rem;
+    color:var(--text-dim);
+    text-align:center;
+    margin-bottom:.7rem;
+  }
+  .elim-col{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-around;
+    gap:14px;
+  }
+  .match-card{
+    position:relative;
+    background:var(--card-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:.5rem .7rem .6rem;
+    min-height:64px;
+  }
+  .elim-round:not(:last-child) .match-card::after{
+    content:"";
+    position:absolute;
+    top:50%;
+    right:-22px;
+    width:22px;
+    height:1px;
+    background:var(--line);
+  }
+  .elim-round:not(:first-child) .match-card::before{
+    content:"";
+    position:absolute;
+    top:50%;
+    left:-22px;
+    width:22px;
+    height:1px;
+    background:var(--line);
+  }
+  .mc-status{
+    font-size:.66rem;
+    color:var(--gold-dim);
+    text-transform:uppercase;
+    letter-spacing:.4px;
+    margin-bottom:.35rem;
+  }
+  .mc-team{
+    font-size:.83rem;
+    padding:.4rem .55rem;
+    color:var(--text);
+    background:var(--night);
+    border:1px solid var(--line);
+    border-radius:7px;
+    margin-top:.35rem;
+    box-sizing:border-box;
+    height:2.15rem;
+    display:flex;
+    align-items:center;
+  }
+
+  .elim-round{position:relative;}
+  .third-place{
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+  }
+  .third-place .elim-round-title{margin-bottom:.5rem;}
+  .third-place .match-card{min-height:auto;}
   .note{
     font-size:.78rem;
     color:var(--text-dim);
@@ -432,8 +502,41 @@ function Qualification({data}){
     </div>
   );
 
+  const placementTable = (list, label) => {
+    const ranked = rankPool(list);
+    return (
+      <div className="group-block">
+        <h3>{label}</h3>
+        <table className="standings">
+          <thead>
+            <tr><th>Отбор</th><th>Гр.</th><th>М</th><th>Т</th><th>ГР</th><th>ВГ</th></tr>
+          </thead>
+          <tbody>
+            {ranked.map((row,i) => (
+              <tr key={row.team}>
+                <td className="team">{row.team}</td>
+                <td>{GROUP_LABEL[row.group]}</td>
+                <td>{row.M}</td>
+                <td className="pts">{row.Pts}</td>
+                <td>{row.GD>0?`+${row.GD}`:row.GD}</td>
+                <td>{row.GF}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div>
+      <h2 className="section" style={{marginTop:0}}>Класиране по места</h2>
+      {placementTable(winners, "Всички първи места")}
+      {placementTable(runners, "Всички втори места")}
+      {placementTable(thirds, "Всички трети места")}
+      {placementTable(fourths, "Всички четвърти места")}
+
+      <h2 className="section">Разпределение по турнири</h2>
       <div className="cup-block">
         <h3>Шампионски поток</h3>
         {renderSlots(mainCup)}
@@ -446,34 +549,64 @@ function Qualification({data}){
   );
 }
 
+function EliminationTree({title}){
+  const qf = [
+    {a:"", b:""},
+    {a:"", b:""},
+    {a:"", b:""},
+    {a:"", b:""},
+  ];
+  const sf = [
+    {a:"Победител 1/4-финал 1", b:"Победител 1/4-финал 2"},
+    {a:"Победител 1/4-финал 3", b:"Победител 1/4-финал 4"},
+  ];
+  const final = [{a:"Победител полуфинал 1", b:"Победител полуфинал 2"}];
+  const third = {a:"Загубил полуфинал 1", b:"Загубил полуфинал 2"};
+
+  const Card = ({m, pending}) => (
+    <div className="match-card">
+      <div className="mc-status">{pending}</div>
+      <div className={"mc-team"+(m.a?"":" mc-team-empty")}><span>{m.a}</span></div>
+      <div className={"mc-team"+(m.b?"":" mc-team-empty")}><span>{m.b}</span></div>
+    </div>
+  );
+
+  return (
+    <div className="cup-block">
+      <h3>{title}</h3>
+      <div className="elim-wrap">
+        <div className="elim-round">
+          <div className="elim-round-title">Четвъртфинали</div>
+          <div className="elim-col">
+            {qf.map((m,i)=><Card m={m} key={i} pending="Очаква жребий" />)}
+          </div>
+        </div>
+        <div className="elim-round">
+          <div className="elim-round-title">Полуфинали</div>
+          <div className="elim-col elim-col-sf">
+            {sf.map((m,i)=><Card m={m} key={i} pending="Очаква 1/4-финал" />)}
+          </div>
+        </div>
+        <div className="elim-round">
+          <div className="elim-round-title">Финал</div>
+          <div className="elim-col elim-col-final">
+            {final.map((m,i)=><Card m={m} key={i} pending="Очаква полуфинал" />)}
+          </div>
+          <div className="third-place">
+            <div className="elim-round-title">Мач за 3-то място</div>
+            <Card m={third} pending="Очаква полуфинал" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Bracket(){
-  const slots = [1,2,3,4];
   return (
     <div>
-      <div className="cup-block">
-        <h3>Четвъртфинали — Шампионски поток</h3>
-        <div className="bracket">
-          {slots.map(i=>(
-            <div className="pair" key={i}>
-              <span>Х</span>
-              <span className="tag">срещу</span>
-              <span>Х</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="cup-block">
-        <h3>Четвъртфинали — Купа Втори Шанс</h3>
-        <div className="bracket">
-          {slots.map(i=>(
-            <div className="pair" key={i}>
-              <span>Х</span>
-              <span className="tag">срещу</span>
-              <span>Х</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <EliminationTree title="Елиминации — Шампионски поток" />
+      <EliminationTree title="Елиминации — Купа Втори Шанс" />
     </div>
   );
 }
