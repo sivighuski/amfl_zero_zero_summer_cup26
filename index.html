@@ -287,45 +287,45 @@
 const {useState, useMemo} = React;
 
 const initialData = {
-  A: { name: "Група А", teams: ["Fullmax","Абсолют","Стройгранд","Ново Оряхово"], matches: [
-    {round:1, home:"Ново Оряхово", away:"Fullmax", hs:0, as:12},
-    {round:1, home:"Абсолют", away:"Стройгранд", hs:2, as:4},
-    {round:2, home:"Стройгранд", away:"Fullmax", hs:2, as:4},
-    {round:2, home:"Ново Оряхово", away:"Абсолют", hs:3, as:8},
-    {round:3, home:"Fullmax", away:"Абсолют", hs:null, as:null},
-    {round:3, home:"Стройгранд", away:"Ново Оряхово", hs:null, as:null},
+  A: { name: "Група А", teams: ["FC Fullmax","АФК Абсолют","МФК Стройгранд","ФК Ново Оряхово"], matches: [
+    {round:1, home:"ФК Ново Оряхово", away:"FC Fullmax", hs:0, as:12},
+    {round:1, home:"АФК Абсолют", away:"МФК Стройгранд", hs:2, as:4},
+    {round:2, home:"МФК Стройгранд", away:"FC Fullmax", hs:2, as:4},
+    {round:2, home:"ФК Ново Оряхово", away:"АФК Абсолют", hs:3, as:8},
+    {round:3, home:"FC Fullmax", away:"АФК Абсолют", hs:null, as:null},
+    {round:3, home:"МФК Стройгранд", away:"ФК Ново Оряхово", hs:null, as:null},
   ]},
-  B: { name: "Група Б", teams: ["Феникс","Спейс Тийм","Сивите Гъски","Тигрите от Младост"], matches: [
-    {round:1, home:"Тигрите от Младост", away:"Феникс", hs:4, as:6},
+  B: { name: "Група Б", teams: ["МФК Феникс","Спейс Тийм","Сивите Гъски","Тигрите от Младост"], matches: [
+    {round:1, home:"Тигрите от Младост", away:"МФК Феникс", hs:4, as:6},
     {round:1, home:"Сивите Гъски", away:"Спейс Тийм", hs:5, as:5},
-    {round:2, home:"Феникс", away:"Сивите Гъски", hs:4, as:2},
+    {round:2, home:"МФК Феникс", away:"Сивите Гъски", hs:4, as:2},
     {round:2, home:"Спейс Тийм", away:"Тигрите от Младост", hs:5, as:3},
-    {round:3, home:"Спейс Тийм", away:"Феникс", hs:null, as:null},
+    {round:3, home:"Спейс Тийм", away:"МФК Феникс", hs:null, as:null},
     {round:3, home:"Тигрите от Младост", away:"Сивите Гъски", hs:null, as:null},
   ]},
-  C: { name: "Група В", teams: ["Балерини","Фк Дружба","Фк Финт","Сборка 17"], matches: [
-    {round:1, home:"Сборка 17", away:"Балерини", hs:1, as:6},
-    {round:1, home:"Фк Финт", away:"Фк Дружба", hs:5, as:1},
-    {round:2, home:"Балерини", away:"Фк Финт", hs:11, as:1},
-    {round:2, home:"Фк Дружба", away:"Сборка 17", hs:8, as:4},
-    {round:3, home:"Фк Дружба", away:"Балерини", hs:null, as:null},
-    {round:3, home:"Сборка 17", away:"Фк Финт", hs:null, as:null},
+  C: { name: "Група В", teams: ["МФК Балерини","ФК Дружба","ФК Финт","Сборка 17"], matches: [
+    {round:1, home:"Сборка 17", away:"МФК Балерини", hs:1, as:6},
+    {round:1, home:"ФК Финт", away:"ФК Дружба", hs:5, as:1},
+    {round:2, home:"МФК Балерини", away:"ФК Финт", hs:11, as:1},
+    {round:2, home:"ФК Дружба", away:"Сборка 17", hs:8, as:4},
+    {round:3, home:"ФК Дружба", away:"МФК Балерини", hs:null, as:null},
+    {round:3, home:"Сборка 17", away:"ФК Финт", hs:null, as:null},
   ]},
-  D: { name: "Група Г", teams: ["The Unity","TNT","ФК Владислав","Ария"], matches: [
+  D: { name: "Група Г", teams: ["The Unity","MFC TNT","ФК Владислав","ФК Ария"], matches: [
     {round:1, home:"ФК Владислав", away:"The Unity", hs:1, as:10},
-    {round:1, home:"Ария", away:"TNT", hs:0, as:5},
-    {round:2, home:"The Unity", away:"Ария", hs:9, as:0},
-    {round:2, home:"TNT", away:"ФК Владислав", hs:10, as:2},
-    {round:3, home:"TNT", away:"The Unity", hs:null, as:null},
-    {round:3, home:"ФК Владислав", away:"Ария", hs:null, as:null},
+    {round:1, home:"ФК Ария", away:"MFC TNT", hs:0, as:5},
+    {round:2, home:"The Unity", away:"ФК Ария", hs:9, as:0},
+    {round:2, home:"MFC TNT", away:"ФК Владислав", hs:10, as:2},
+    {round:3, home:"MFC TNT", away:"The Unity", hs:null, as:null},
+    {round:3, home:"ФК Владислав", away:"ФК Ария", hs:null, as:null},
   ]},
-  E: { name: "Група Д", teams: ["Валекс","МФК Импакт","Арсенал Трошево","МФК Братухи"], matches: [
-    {round:1, home:"МФК Братухи", away:"Валекс", hs:0, as:8},
+  E: { name: "Група Д", teams: ["МФК Валекс","МФК Импакт","Арсенал Трошево","ФК Братухи"], matches: [
+    {round:1, home:"ФК Братухи", away:"МФК Валекс", hs:0, as:8},
     {round:1, home:"Арсенал Трошево", away:"МФК Импакт", hs:2, as:3},
-    {round:2, home:"Валекс", away:"Арсенал Трошево", hs:1, as:2},
-    {round:2, home:"МФК Импакт", away:"МФК Братухи", hs:6, as:2},
-    {round:3, home:"МФК Импакт", away:"Валекс", hs:null, as:null},
-    {round:3, home:"МФК Братухи", away:"Арсенал Трошево", hs:null, as:null},
+    {round:2, home:"МФК Валекс", away:"Арсенал Трошево", hs:1, as:2},
+    {round:2, home:"МФК Импакт", away:"ФК Братухи", hs:6, as:2},
+    {round:3, home:"МФК Импакт", away:"МФК Валекс", hs:null, as:null},
+    {round:3, home:"ФК Братухи", away:"Арсенал Трошево", hs:null, as:null},
   ]},
 };
 
@@ -359,26 +359,26 @@ const GROUP_KEYS = ["A","B","C","D","E"];
 const GROUP_LABEL = {A:"А", B:"Б", C:"В", D:"Г", E:"Д"};
 
 const TEAM_FLAG = {
-  "Fullmax":"🇵🇹",
-  "Абсолют":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-  "Ново Оряхово":"🇫🇷",
-  "Стройгранд":"🇲🇦",
-  "Феникс":"🇳🇴",
+  "FC Fullmax":"🇵🇹",
+  "АФК Абсолют":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "ФК Ново Оряхово":"🇫🇷",
+  "МФК Стройгранд":"🇲🇦",
+  "МФК Феникс":"🇳🇴",
   "Спейс Тийм":"🇪🇸",
   "Сивите Гъски":"🇯🇵",
   "Тигрите от Младост":"🇦🇷",
-  "Балерини":"🇩🇪",
-  "Фк Дружба":"🇨🇻",
+  "МФК Балерини":"🇩🇪",
+  "ФК Дружба":"🇨🇻",
   "Сборка 17":"🇭🇹",
-  "Фк Финт":"🇧🇷",
+  "ФК Финт":"🇧🇷",
   "The Unity":"🇨🇮",
-  "TNT":"🇨🇼",
-  "Ария":"🇲🇽",
+  "MFC TNT":"🇨🇼",
+  "ФК Ария":"🇲🇽",
   "ФК Владислав":"🇧🇪",
   "МФК Импакт":"🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-  "Валекс":"🇸🇳",
+  "МФК Валекс":"🇸🇳",
   "Арсенал Трошево":"🇨🇴",
-  "МФК Братухи":"🇭🇷",
+  "ФК Братухи":"🇭🇷",
 };
 const flagFor = team => TEAM_FLAG[team] ? TEAM_FLAG[team]+" " : "";
 
