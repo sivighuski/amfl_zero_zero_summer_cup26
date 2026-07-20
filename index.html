@@ -131,13 +131,22 @@
   .matches-grid{display:flex;flex-direction:column;gap:.5rem;}
   .round-label{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin:.7rem 0 .3rem;}
   .match-row{
+    background:var(--card-2);
+    border-radius:8px;
+    padding:.45rem .6rem .55rem;
+  }
+  .match-score-row{
     display:grid;
     grid-template-columns:1fr 46px 16px 46px 1fr;
     align-items:center;
     gap:.5rem;
-    background:var(--card-2);
-    border-radius:8px;
-    padding:.45rem .6rem;
+  }
+  .match-row .when{
+    text-align:center;
+    font-size:.68rem;
+    color:var(--text-dim);
+    margin-top:.3rem;
+    letter-spacing:.3px;
   }
   .match-row .home{text-align:right;font-size:.85rem;}
   .match-row .away{text-align:left;font-size:.85rem;}
@@ -276,7 +285,7 @@
   }
   .footer-note{text-align:center;color:var(--text-dim);font-size:.72rem;margin-top:2rem;}
   @media(max-width:520px){
-    .match-row{grid-template-columns:1fr 40px 14px 40px 1fr;}
+    .match-score-row{grid-template-columns:1fr 40px 14px 40px 1fr;}
     table.standings{font-size:.72rem;}
   }
 </style>
@@ -288,44 +297,44 @@ const {useState, useMemo} = React;
 
 const initialData = {
   A: { name: "Група А", teams: ["FC Fullmax","АФК Абсолют","МФК Стройгранд","ФК Ново Оряхово"], matches: [
-    {round:1, home:"ФК Ново Оряхово", away:"FC Fullmax", hs:0, as:12},
-    {round:1, home:"АФК Абсолют", away:"МФК Стройгранд", hs:2, as:4},
-    {round:2, home:"МФК Стройгранд", away:"FC Fullmax", hs:2, as:4},
-    {round:2, home:"ФК Ново Оряхово", away:"АФК Абсолют", hs:3, as:8},
-    {round:3, home:"FC Fullmax", away:"АФК Абсолют", hs:null, as:null},
-    {round:3, home:"МФК Стройгранд", away:"ФК Ново Оряхово", hs:null, as:null},
+    {round:1, date:"09.07", time:"21:00", home:"FC Fullmax", away:"МФК Стройгранд", hs:4, as:2},
+    {round:1, date:"10.07", time:"21:00", home:"АФК Абсолют", away:"ФК Ново Оряхово", hs:8, as:3},
+    {round:2, date:"16.07", time:"20:00", home:"FC Fullmax", away:"ФК Ново Оряхово", hs:12, as:0},
+    {round:2, date:"17.07", time:"21:00", home:"АФК Абсолют", away:"МФК Стройгранд", hs:2, as:4},
+    {round:3, date:"23.07", time:"21:00", home:"FC Fullmax", away:"АФК Абсолют", hs:null, as:null},
+    {round:3, date:"24.07", time:"21:00", home:"МФК Стройгранд", away:"ФК Ново Оряхово", hs:null, as:null},
   ]},
   B: { name: "Група Б", teams: ["МФК Феникс","Спейс Тийм","Сивите Гъски","Тигрите от Младост"], matches: [
-    {round:1, home:"Тигрите от Младост", away:"МФК Феникс", hs:4, as:6},
-    {round:1, home:"Сивите Гъски", away:"Спейс Тийм", hs:5, as:5},
-    {round:2, home:"МФК Феникс", away:"Сивите Гъски", hs:4, as:2},
-    {round:2, home:"Спейс Тийм", away:"Тигрите от Младост", hs:5, as:3},
-    {round:3, home:"Спейс Тийм", away:"МФК Феникс", hs:null, as:null},
-    {round:3, home:"Тигрите от Младост", away:"Сивите Гъски", hs:null, as:null},
+    {round:1, date:"10.07", time:"20:00", home:"Сивите Гъски", away:"Спейс Тийм", hs:5, as:5},
+    {round:1, date:"10.07", time:"20:00", home:"МФК Феникс", away:"Тигрите от Младост", hs:6, as:4},
+    {round:2, date:"17.07", time:"20:00", home:"МФК Феникс", away:"Сивите Гъски", hs:4, as:2},
+    {round:2, date:"17.07", time:"20:00", home:"Спейс Тийм", away:"Тигрите от Младост", hs:5, as:3},
+    {round:3, date:"24.07", time:"20:00", home:"МФК Феникс", away:"Спейс Тийм", hs:null, as:null},
+    {round:3, date:"23.07", time:"22:00", home:"Сивите Гъски", away:"Тигрите от Младост", hs:null, as:null},
   ]},
   C: { name: "Група В", teams: ["МФК Балерини","ФК Дружба","ФК Финт","Сборка 17"], matches: [
-    {round:1, home:"Сборка 17", away:"МФК Балерини", hs:1, as:6},
-    {round:1, home:"ФК Финт", away:"ФК Дружба", hs:5, as:1},
-    {round:2, home:"МФК Балерини", away:"ФК Финт", hs:11, as:1},
-    {round:2, home:"ФК Дружба", away:"Сборка 17", hs:8, as:4},
-    {round:3, home:"ФК Дружба", away:"МФК Балерини", hs:null, as:null},
-    {round:3, home:"Сборка 17", away:"ФК Финт", hs:null, as:null},
+    {round:1, date:"06.07", time:"20:00", home:"МФК Балерини", away:"ФК Финт", hs:11, as:1},
+    {round:1, date:"07.07", time:"20:00", home:"ФК Дружба", away:"Сборка 17", hs:8, as:4},
+    {round:2, date:"13.07", time:"20:00", home:"МФК Балерини", away:"Сборка 17", hs:6, as:1},
+    {round:2, date:"14.07", time:"20:00", home:"ФК Дружба", away:"ФК Финт", hs:1, as:5},
+    {round:3, date:"20.07", time:"21:00", home:"МФК Балерини", away:"ФК Дружба", hs:null, as:null},
+    {round:3, date:"21.07", time:"20:00", home:"Сборка 17", away:"ФК Финт", hs:null, as:null},
   ]},
   D: { name: "Група Г", teams: ["The Unity","MFC TNT","ФК Владислав","ФК Ария"], matches: [
-    {round:1, home:"ФК Владислав", away:"The Unity", hs:1, as:10},
-    {round:1, home:"ФК Ария", away:"MFC TNT", hs:0, as:5},
-    {round:2, home:"The Unity", away:"ФК Ария", hs:9, as:0},
-    {round:2, home:"MFC TNT", away:"ФК Владислав", hs:10, as:2},
-    {round:3, home:"MFC TNT", away:"The Unity", hs:null, as:null},
-    {round:3, home:"ФК Владислав", away:"ФК Ария", hs:null, as:null},
+    {round:1, date:"06.07", time:"21:00", home:"The Unity", away:"ФК Владислав", hs:10, as:1},
+    {round:1, date:"09.07", time:"20:00", home:"ФК Ария", away:"MFC TNT", hs:0, as:5},
+    {round:2, date:"13.07", time:"21:00", home:"The Unity", away:"ФК Ария", hs:9, as:0},
+    {round:2, date:"14.07", time:"21:00", home:"MFC TNT", away:"ФК Владислав", hs:10, as:2},
+    {round:3, date:"20.07", time:"20:00", home:"The Unity", away:"MFC TNT", hs:null, as:null},
+    {round:3, date:"23.07", time:"20:00", home:"ФК Ария", away:"ФК Владислав", hs:null, as:null},
   ]},
   E: { name: "Група Д", teams: ["МФК Валекс","МФК Импакт","Арсенал Трошево","ФК Братухи"], matches: [
-    {round:1, home:"ФК Братухи", away:"МФК Валекс", hs:0, as:8},
-    {round:1, home:"Арсенал Трошево", away:"МФК Импакт", hs:2, as:3},
-    {round:2, home:"МФК Валекс", away:"Арсенал Трошево", hs:1, as:2},
-    {round:2, home:"МФК Импакт", away:"ФК Братухи", hs:6, as:2},
-    {round:3, home:"МФК Импакт", away:"МФК Валекс", hs:null, as:null},
-    {round:3, home:"ФК Братухи", away:"Арсенал Трошево", hs:null, as:null},
+    {round:1, date:"07.07", time:"21:00", home:"МФК Валекс", away:"Арсенал Трошево", hs:1, as:2},
+    {round:1, date:"10.07", time:"21:00", home:"МФК Импакт", away:"ФК Братухи", hs:6, as:2},
+    {round:2, date:"16.07", time:"21:00", home:"МФК Импакт", away:"Арсенал Трошево", hs:3, as:2},
+    {round:2, date:"17.07", time:"21:00", home:"МФК Валекс", away:"ФК Братухи", hs:8, as:0},
+    {round:3, date:"21.07", time:"21:00", home:"МФК Импакт", away:"МФК Валекс", hs:null, as:null},
+    {round:3, date:"24.07", time:"21:00", home:"Арсенал Трошево", away:"ФК Братухи", hs:null, as:null},
   ]},
 };
 
@@ -458,13 +467,16 @@ function Matches({data, setData}){
                     if(m.round !== r) return null;
                     return (
                       <div className="match-row" key={idx}>
-                        <div className="home">{flagFor(m.home)}{m.home}</div>
-                        <input type="text" inputMode="numeric" value={m.hs===null?"":m.hs}
-                          onChange={e=>updateScore(gk, idx, "hs", e.target.value)} />
-                        <div className="vs">:</div>
-                        <input type="text" inputMode="numeric" value={m.as===null?"":m.as}
-                          onChange={e=>updateScore(gk, idx, "as", e.target.value)} />
-                        <div className="away">{flagFor(m.away)}{m.away}</div>
+                        <div className="match-score-row">
+                          <div className="home">{flagFor(m.home)}{m.home}</div>
+                          <input type="text" inputMode="numeric" value={m.hs===null?"":m.hs}
+                            onChange={e=>updateScore(gk, idx, "hs", e.target.value)} />
+                          <div className="vs">:</div>
+                          <input type="text" inputMode="numeric" value={m.as===null?"":m.as}
+                            onChange={e=>updateScore(gk, idx, "as", e.target.value)} />
+                          <div className="away">{flagFor(m.away)}{m.away}</div>
+                        </div>
+                        <div className="when">{m.date} · {m.time}</div>
                       </div>
                     );
                   })}
