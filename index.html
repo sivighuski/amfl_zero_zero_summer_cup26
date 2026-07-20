@@ -109,7 +109,8 @@
   }
   table.standings th:first-child, table.standings td:first-child{
     text-align:left;
-    padding-left:.2rem;
+    padding-left:.7rem;
+    border-left:3px solid transparent;
   }
   table.standings td{
     text-align:center;
@@ -118,8 +119,8 @@
     font-size:.82rem;
     border-bottom:1px solid rgba(255,255,255,0.04);
   }
-  table.standings tr.q-main td:first-child{border-left:3px solid var(--win);padding-left:.7rem;}
-  table.standings tr.q-second td:first-child{border-left:3px solid var(--draw);padding-left:.7rem;}
+  table.standings tr.q-main td:first-child{border-left-color:var(--win);}
+  table.standings tr.q-second td:first-child{border-left-color:var(--draw);}
   table.standings td.pts{color:var(--gold);font-weight:700;}
   table.standings td.team{font-family:'Inter',sans-serif;font-weight:500;color:var(--text);}
   .legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--text-dim);margin:.6rem 0 0;}
@@ -273,18 +274,6 @@
     border-radius:0 8px 8px 0;
     margin:.8rem 0 0;
   }
-  .toolbar{display:flex;gap:.6rem;justify-content:center;margin:1.5rem 0 0;flex-wrap:wrap;}
-  .toolbar button{
-    font-family:'Inter',sans-serif;
-    font-size:.82rem;
-    background:var(--card);
-    border:1px solid var(--line);
-    color:var(--text);
-    padding:.5rem 1rem;
-    border-radius:8px;
-    cursor:pointer;
-  }
-  .toolbar button:hover{border-color:var(--gold);color:var(--gold);}
   .footer-note{text-align:center;color:var(--text-dim);font-size:.72rem;margin-top:2rem;}
   @media(max-width:520px){
     .match-row{grid-template-columns:1fr 40px 14px 40px 1fr;}
@@ -369,6 +358,30 @@ function rankPool(pool){
 const GROUP_KEYS = ["A","B","C","D","E"];
 const GROUP_LABEL = {A:"А", B:"Б", C:"В", D:"Г", E:"Д"};
 
+const TEAM_FLAG = {
+  "Fullmax":"🇵🇹",
+  "Абсолют":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "Ново Оряхово":"🇫🇷",
+  "Стройгранд":"🇲🇦",
+  "Феникс":"🇳🇴",
+  "Спейс Тийм":"🇪🇸",
+  "Сивите Гъски":"🇯🇵",
+  "Тигрите от Младост":"🇦🇷",
+  "Балерини":"🇩🇪",
+  "Фк Дружба":"🇨🇻",
+  "Сборка 17":"🇭🇹",
+  "Фк Финт":"🇧🇷",
+  "The Unity":"🇨🇮",
+  "TNT":"🇨🇼",
+  "Ария":"🇲🇽",
+  "ФК Владислав":"🇧🇪",
+  "МФК Импакт":"🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+  "Валекс":"🇸🇳",
+  "Арсенал Трошево":"🇨🇴",
+  "МФК Братухи":"🇭🇷",
+};
+const flagFor = team => TEAM_FLAG[team] ? TEAM_FLAG[team]+" " : "";
+
 function Standings({data}){
   const allStandings = {};
   GROUP_KEYS.forEach(k => allStandings[k] = computeStandings(data[k]));
@@ -397,7 +410,7 @@ function Standings({data}){
                   const cls = i===0 ? "q-main" : (i===1 && bestRunners.includes(row.team)) ? "q-main" : (i===1 ? "q-second" : (i===2 ? "q-second" : (i===3 && row.team===bestFourth ? "q-second" : "")));
                   return (
                     <tr key={row.team} className={cls}>
-                      <td className="team">{row.team}</td>
+                      <td className="team">{flagFor(row.team)}{row.team}</td>
                       <td>{row.M}</td><td>{row.W}</td><td>{row.D}</td><td>{row.L}</td>
                       <td>{row.GF}</td><td>{row.GA}</td>
                       <td>{row.GD>0?`+${row.GD}`:row.GD}</td>
@@ -445,13 +458,13 @@ function Matches({data, setData}){
                     if(m.round !== r) return null;
                     return (
                       <div className="match-row" key={idx}>
-                        <div className="home">{m.home}</div>
+                        <div className="home">{flagFor(m.home)}{m.home}</div>
                         <input type="text" inputMode="numeric" value={m.hs===null?"":m.hs}
                           onChange={e=>updateScore(gk, idx, "hs", e.target.value)} />
                         <div className="vs">:</div>
                         <input type="text" inputMode="numeric" value={m.as===null?"":m.as}
                           onChange={e=>updateScore(gk, idx, "as", e.target.value)} />
-                        <div className="away">{m.away}</div>
+                        <div className="away">{flagFor(m.away)}{m.away}</div>
                       </div>
                     );
                   })}
@@ -495,7 +508,7 @@ function Qualification({data}){
     <div className="slot-list">
       {list.map((t,i) => (
         <div className="slot" key={i}>
-          <span className="team">{t.team}</span>
+          <span className="team">{flagFor(t.team)}{t.team}</span>
           <span className="why">{t.why}</span>
         </div>
       ))}
@@ -514,7 +527,7 @@ function Qualification({data}){
           <tbody>
             {ranked.map((row,i) => (
               <tr key={row.team}>
-                <td className="team">{row.team}</td>
+                <td className="team">{flagFor(row.team)}{row.team}</td>
                 <td>{GROUP_LABEL[row.group]}</td>
                 <td>{row.M}</td>
                 <td className="pts">{row.Pts}</td>
@@ -615,29 +628,6 @@ function App(){
   const [data, setData] = useState(initialData);
   const [tab, setTab] = useState("matches");
 
-  const exportJSON = () => {
-    const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "turnir-danni.json"; a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const importJSON = (e) => {
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      try{
-        const parsed = JSON.parse(ev.target.result);
-        setData(parsed);
-      }catch(err){
-        alert("Файлът не изглежда валиден JSON.");
-      }
-    };
-    reader.readAsText(file);
-  };
-
   return (
     <div className="wrap">
       <header className="top">
@@ -654,13 +644,6 @@ function App(){
       {tab==="standings" && <Standings data={data} />}
       {tab==="qual" && <Qualification data={data} />}
       {tab==="bracket" && <Bracket />}
-      <div className="toolbar">
-        <button onClick={exportJSON}>Свали данните (JSON)</button>
-        <label className="btn-file" style={{display:"inline-block"}}>
-          <button onClick={(e)=>{e.preventDefault(); document.getElementById('import-input').click();}}>Качи запазени данни</button>
-          <input id="import-input" type="file" accept="application/json" style={{display:"none"}} onChange={importJSON} />
-        </label>
-      </div>
     </div>
   );
 }
