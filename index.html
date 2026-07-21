@@ -71,6 +71,21 @@
     color:var(--night);
     border-color:var(--gold);
   }
+  .live-dot{
+    display:inline-block;
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#e2574c;
+    margin-left:.4rem;
+    vertical-align:middle;
+    animation:live-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes live-pulse{
+    0%{box-shadow:0 0 0 0 rgba(226,87,76,.6);}
+    70%{box-shadow:0 0 0 7px rgba(226,87,76,0);}
+    100%{box-shadow:0 0 0 0 rgba(226,87,76,0);}
+  }
   h2.section{
     font-family:'Bebas Neue',sans-serif;
     letter-spacing:1.5px;
@@ -182,6 +197,7 @@
   .slot{
     display:flex;
     align-items:center;
+    flex-wrap:wrap;
     gap:.6rem;
     background:var(--card-2);
     border-radius:8px;
@@ -189,7 +205,23 @@
     font-size:.88rem;
   }
   .slot .team{font-weight:500;}
+  .slot .vs-label{color:var(--text-dim);font-size:.76rem;}
   .slot .why{color:var(--text-dim);font-size:.76rem;margin-left:auto;}
+  .yt-embed-wrap{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    border-radius:8px;
+    overflow:hidden;
+    background:var(--night);
+  }
+  .yt-embed-wrap iframe{
+    position:absolute;
+    top:0; left:0;
+    width:100%;
+    height:100%;
+    border:0;
+  }
 
   .elim-wrap{
     display:flex;
@@ -293,7 +325,7 @@
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const {useState, useMemo} = React;
+const {useState, useMemo, useEffect} = React;
 
 const initialData = {
   A: { name: "Група А", teams: ["FC Fullmax","АФК Абсолют","МФК Стройгранд","ФК Ново Оряхово"], matches: [
@@ -317,7 +349,7 @@ const initialData = {
     {round:1, date:"07.07", time:"20:00", home:"ФК Дружба", away:"Сборка 17", hs:8, as:4},
     {round:2, date:"13.07", time:"20:00", home:"МФК Балерини", away:"Сборка 17", hs:6, as:1},
     {round:2, date:"14.07", time:"20:00", home:"ФК Дружба", away:"ФК Финт", hs:1, as:5},
-    {round:3, date:"20.07", time:"21:00", home:"МФК Балерини", away:"ФК Дружба", hs:null, as:null},
+    {round:3, date:"20.07", time:"21:00", home:"МФК Балерини", away:"ФК Дружба", hs:5, as:3},
     {round:3, date:"21.07", time:"20:00", home:"Сборка 17", away:"ФК Финт", hs:null, as:null},
   ]},
   D: { name: "Група Г", teams: ["The Unity","MFC TNT","ФК Владислав","ФК Ария"], matches: [
@@ -325,7 +357,7 @@ const initialData = {
     {round:1, date:"09.07", time:"20:00", home:"ФК Ария", away:"MFC TNT", hs:0, as:5},
     {round:2, date:"13.07", time:"21:00", home:"The Unity", away:"ФК Ария", hs:9, as:0},
     {round:2, date:"14.07", time:"21:00", home:"MFC TNT", away:"ФК Владислав", hs:10, as:2},
-    {round:3, date:"20.07", time:"20:00", home:"The Unity", away:"MFC TNT", hs:null, as:null},
+    {round:3, date:"20.07", time:"20:00", home:"The Unity", away:"MFC TNT", hs:2, as:2},
     {round:3, date:"23.07", time:"20:00", home:"ФК Ария", away:"ФК Владислав", hs:null, as:null},
   ]},
   E: { name: "Група Д", teams: ["МФК Валекс","МФК Импакт","Арсенал Трошево","ФК Братухи"], matches: [
@@ -636,9 +668,101 @@ function Bracket(){
   );
 }
 
+const YOUTUBE_CHANNEL_ID = "UCsjB8kn8RDwBJTc2NOPPeCA";
+
+function useYoutubeLive(channelId, intervalMs){
+  const [state, setState] = useState({checked:false, isLive:false, videoId:null, title:null});
+
+  useEffect(() => {
+    let cancelled = false;
+    const check = async () => {
+      try{
+        const liveUrl = `https://www.youtube.com/channel/${channelId}/live`;
+        const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(liveUrl)}&format=json`);
+        if(!res.ok) throw new Error("offline");
+        const json = await res.json();
+        const match = json.html && json.html.match(/embed\/([a-zA-Z0-9_-]+)/);
+        if(cancelled) return;
+        if(match){
+          setState({checked:true, isLive:true, videoId:match[1], title:json.title});
+        } else {
+          setState({checked:true, isLive:false, videoId:null, title:null});
+        }
+      }catch(e){
+        if(!cancelled) setState({checked:true, isLive:false, videoId:null, title:null});
+      }
+    };
+    check();
+    const id = setInterval(check, intervalMs);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [channelId, intervalMs]);
+
+  return state;
+}
+
+function findNextMatch(data){
+  const all = [];
+  GROUP_KEYS.forEach(gk => {
+    data[gk].matches.forEach(m => {
+      if(m.hs===null || m.as===null){
+        const [dd,mm] = (m.date||"01.01").split(".").map(Number);
+        const [hh,min] = (m.time||"00:00").split(":").map(Number);
+        all.push({...m, group:gk, sortKey: mm*10000 + dd*100 + hh + min/60});
+      }
+    });
+  });
+  all.sort((a,b)=>a.sortKey-b.sortKey);
+  return all[0] || null;
+}
+
+function LiveTab({data, live}){
+  const next = findNextMatch(data);
+  return (
+    <div>
+      <div className="cup-block">
+        <h3>
+          На живо от AMFL
+          {live.isLive && <span className="live-dot" title="На живо"></span>}
+        </h3>
+        {live.isLive ? (
+          <div className="yt-embed-wrap">
+            <iframe
+              src={`https://www.youtube.com/embed/${live.videoId}?autoplay=0`}
+              title="AMFL YouTube Live"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        ) : (
+          <div className="note">
+            {live.checked ? "В момента AMFL не излъчва на живо." : "Проверяваме дали има активно излъчване..."} Страницата проверява автоматично на всяка минута и половина.
+          </div>
+        )}
+      </div>
+      <div className="cup-block">
+        <h3>Следващ мач</h3>
+        {next ? (
+          <div className="slot-list">
+            <div className="slot">
+              <span className="team">{flagFor(next.home)}{next.home}</span>
+              <span className="vs-label">срещу</span>
+              <span className="team">{flagFor(next.away)}{next.away}</span>
+              <span className="why">{data[next.group].name} · {next.date} · {next.time}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="note">Всички мачове от груповата фаза са изиграни.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function App(){
   const [data, setData] = useState(initialData);
   const [tab, setTab] = useState("matches");
+  const live = useYoutubeLive(YOUTUBE_CHANNEL_ID, 90000);
 
   return (
     <div className="wrap">
@@ -647,11 +771,15 @@ function App(){
         <p>Групова фаза · Основна купа + Купа "Втори шанс"</p>
       </header>
       <nav className="tabs">
+        <button className={tab==="live"?"active":""} onClick={()=>setTab("live")}>
+          Live{live.isLive && <span className="live-dot"></span>}
+        </button>
         <button className={tab==="matches"?"active":""} onClick={()=>setTab("matches")}>Резултати</button>
         <button className={tab==="standings"?"active":""} onClick={()=>setTab("standings")}>Класиране</button>
         <button className={tab==="qual"?"active":""} onClick={()=>setTab("qual")}>Класирали се</button>
         <button className={tab==="bracket"?"active":""} onClick={()=>setTab("bracket")}>Плейофи</button>
       </nav>
+      {tab==="live" && <LiveTab data={data} live={live} />}
       {tab==="matches" && <Matches data={data} setData={setData} />}
       {tab==="standings" && <Standings data={data} />}
       {tab==="qual" && <Qualification data={data} />}
